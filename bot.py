@@ -112,6 +112,7 @@ async def help_command(ctx):
                     "**!upcoming** - Upcoming matches only\n"
                     "**!ended** - Ended matches only\n"
                     "**!allmatches** - List all match titles (compact)\n"
+                    "**!meme** - Get a random meme 🤣\n"
                     "**!sync** - Sync slash commands (Admin only)\n"
                     "**!help_me** - This message")
 
@@ -214,6 +215,25 @@ async def slash_ended(interaction: discord.Interaction):
         return
 
     embed = utils.create_grouped_match_embed(matches, "🏁 Ended Matches", 0x95A5A6)
+    await interaction.followup.send(embed=embed)
+
+@bot.command(name='meme', help='Get a random meme')
+async def meme(ctx):
+    meme_data = api_client.fetch_meme()
+    if not meme_data:
+        await ctx.send("Could not fetch a meme. 😢")
+        return
+    embed = utils.create_meme_embed(meme_data)
+    await ctx.send(embed=embed)
+
+@bot.tree.command(name="meme", description="Get a random meme")
+async def slash_meme(interaction: discord.Interaction):
+    await interaction.response.defer()
+    meme_data = api_client.fetch_meme()
+    if not meme_data:
+        await interaction.followup.send("Could not fetch a meme. 😢")
+        return
+    embed = utils.create_meme_embed(meme_data)
     await interaction.followup.send(embed=embed)
 
 if __name__ == "__main__":

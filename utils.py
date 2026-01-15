@@ -98,3 +98,43 @@ def create_grouped_match_embed(matches, title, color):
         
     embed.set_footer(text=f"Total: {len(matches)}")
     return embed
+
+def create_meme_embed(meme_data):
+    """
+    Creates a Discord Embed for a meme from meme-api.com
+    """
+    if not meme_data:
+        return discord.Embed(
+            title="⚠️ Error", 
+            description="Could not fetch a meme. Try again later.", 
+            color=0xFF0000
+        )
+
+    title = meme_data.get("title", "Meme")
+    post_link = meme_data.get("postLink", "")
+    image_url = meme_data.get("url", "")
+    subreddit = meme_data.get("subreddit", "memes")
+    author = meme_data.get("author", "unknown")
+    ups = meme_data.get("ups", 0)
+    nsfw = meme_data.get("nsfw", False)
+    spoiler = meme_data.get("spoiler", False)
+
+    # NSFW/Spoiler Warning
+    content_warning = ""
+    if nsfw:
+        content_warning += " [NSFW]"
+    if spoiler:
+        content_warning += " [SPOILER]"
+
+    embed = discord.Embed(
+        title=f"{title}{content_warning}",
+        url=post_link,
+        color=0xFFA500 # Orange
+    )
+    
+    if image_url:
+        embed.set_image(url=image_url)
+
+    embed.set_footer(text=f"👍 {ups} | 👤 {author} | r/{subreddit}")
+    
+    return embed

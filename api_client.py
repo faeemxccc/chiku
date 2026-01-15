@@ -43,3 +43,15 @@ def get_ended_matches():
     if matches is None: return None
     # Ended = Not live AND Has scores
     return [m for m in matches if m.get("is_live") is False and m.get("scores")]
+
+def fetch_meme():
+    """
+    Fetches a random meme from the meme-api.com
+    """
+    try:
+        response = requests.get("https://meme-api.com/gimme", timeout=10)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"⚠️ Meme API Request Failed: {e}")
+        return None
