@@ -1,9 +1,10 @@
 import discord
 import config
 
-def create_match_embed(match):
+def create_match_embed(match, category="general"):
     """
     Creates a Discord Embed for a single match.
+    Category can be: 'live', 'upcoming', 'ended', 'general'
     """
     scores_list = match.get("scores", [])
     if len(scores_list) >= 2:
@@ -29,13 +30,23 @@ def create_match_embed(match):
     status = match.get("status", "No status")
     is_live = match.get("is_live", False)
     
-    # Colors: Red for Live, Blue for Upcoming
-    color = 0xFF0000 if is_live else 0x3498DB
+    # Determine Color & Prefix based on Category or Live Status
+    if category == "live" or is_live:
+        color = 0xFF0000 # Red
+        title_prefix = "🔴 LIVE MATCH"
+    elif category == "upcoming":
+        color = 0x3498DB # Blue
+        title_prefix = "⏳ UPCOMING MATCH"
+    elif category == "ended":
+        color = 0x95A5A6 # Grey
+        title_prefix = "🏁 ENDED MATCH"
+    else:
+        # Fallback logic
+        color = 0xFF0000 if is_live else 0x3498DB
+        title_prefix = "🏏 MATCH DETAILS"
     
     # Emojis & Headers
-    emoji_cricket = config.EMOJI_GUIDE["cricket"]
     emoji_status = config.EMOJI_GUIDE["status"]
-    title_prefix = "🔴 LIVE MATCH" if is_live else "⏳ UPCOMING MATCH"
 
     embed = discord.Embed(
         title=f"{title_prefix}: {match_name}",

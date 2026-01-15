@@ -35,4 +35,11 @@ def get_live_matches():
 def get_upcoming_matches():
     matches = fetch_matches()
     if matches is None: return None
-    return [m for m in matches if m.get("is_live") is False]
+    # Upcoming = Not live AND No scores yet
+    return [m for m in matches if m.get("is_live") is False and not m.get("scores")]
+
+def get_ended_matches():
+    matches = fetch_matches()
+    if matches is None: return None
+    # Ended = Not live AND Has scores
+    return [m for m in matches if m.get("is_live") is False and m.get("scores")]

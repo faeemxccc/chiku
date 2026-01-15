@@ -28,7 +28,10 @@ async def score(ctx):
         return
 
     live_matches = [m for m in matches if m.get("is_live")]
-    upcoming_matches = [m for m in matches if not m.get("is_live")]
+    # Upcoming: Not live AND No scores
+    upcoming_matches = [m for m in matches if not m.get("is_live") and not m.get("scores")]
+    # Ended: Not live AND Has scores
+    ended_matches = [m for m in matches if not m.get("is_live") and m.get("scores")]
 
     if live_matches:
         embed = utils.create_grouped_match_embed(live_matches, "🔴 Live Matches", 0xFF0000)
@@ -36,6 +39,10 @@ async def score(ctx):
     
     if upcoming_matches:
         embed = utils.create_grouped_match_embed(upcoming_matches, "⏳ Upcoming Matches", 0x3498DB)
+        await ctx.send(embed=embed)
+        
+    if ended_matches:
+        embed = utils.create_grouped_match_embed(ended_matches, "🏁 Ended Matches", 0x95A5A6)
         await ctx.send(embed=embed)
 
 @bot.command(name='live', help='Shows only live matches')
@@ -46,7 +53,7 @@ async def live(ctx):
         return
 
     for match in matches:
-        embed = utils.create_match_embed(match)
+        embed = utils.create_match_embed(match, category="live")
         await ctx.send(embed=embed)
 
 @bot.command(name='upcoming', help='Shows only upcoming matches')
@@ -57,10 +64,21 @@ async def upcoming(ctx):
         return
 
     for match in matches:
-        embed = utils.create_match_embed(match)
+        embed = utils.create_match_embed(match, category="upcoming")
         await ctx.send(embed=embed)
 
-@bot.command(name='allmatches', help='Lists all matches with live/upcoming tag')
+@bot.command(name='ended', help='Shows only ended matches')
+async def ended(ctx):
+    matches = api_client.get_ended_matches()
+    if not matches:
+        await ctx.send("Khatam tata bye bye... koi ended match nahi hai.")
+        return
+
+    for match in matches:
+        embed = utils.create_match_embed(match, category="ended")
+        await ctx.send(embed=embed)
+
+@bot.command(name='allmatches', help='Lists all matches with live/upcoming/ended tag')
 async def allmatches(ctx):
     matches = api_client.fetch_matches()
     if not matches:
@@ -69,8 +87,18 @@ async def allmatches(ctx):
 
     response_lines = []
     for match in matches:
-        tag = "🔴 LIVE" if match.get("is_live") else "⏳ UPCOMING"
+        if match.get("is_live"):
+            tag = "🔴 LIVE"
+        elif match.get("scores"):
+            tag = "🏁 ENDED"
+        else:
+            tag = "⏳ UPCOMING"
+            
         name = match.get("name", "Unknown Match")
+        # Fallback if name is missing but match key exists
+        if name == "Unknown Match" and match.get("match"):
+            name = match.get("match")
+            
         response_lines.append(f"{tag} {name}")
     
     await ctx.send("\n".join(response_lines))
@@ -79,9 +107,10 @@ async def allmatches(ctx):
 async def help_command(ctx):
      await ctx.send("📜 Thoda padh bhi liya kar 😅 ye le commands list\n"
                     "**!ping** - Check if I'm alive\n"
-                    "**!score** - All matches cards\n"
+                    "**!score** - All matches cards (Live, Upcoming, Ended)\n"
                     "**!live** - Live matches only\n"
                     "**!upcoming** - Upcoming matches only\n"
+                    "**!ended** - Ended matches only\n"
                     "**!allmatches** - List all match titles (compact)\n"
                     "**!sync** - Sync slash commands (Admin only)\n"
                     "**!help_me** - This message")
@@ -102,7 +131,7 @@ async def slash_ping(interaction: discord.Interaction):
     response = random.choice(config.PING_RESPONSES)
     await interaction.response.send_message(response)
 
-@bot.tree.command(name="score", description="Fetches and displays all live/upcoming matches")
+@bot.tree.command(name="score", description="Fetches and displays all matches")
 async def slash_score(interaction: discord.Interaction):
     await interaction.response.defer() # Defer because API call might be slow
     matches = api_client.fetch_matches()
@@ -116,17 +145,27 @@ async def slash_score(interaction: discord.Interaction):
         return
 
     live_matches = [m for m in matches if m.get("is_live")]
-    upcoming_matches = [m for m in matches if not m.get("is_live")]
+    upcoming_matches = [m for m in matches if not m.get("is_live") and not m.get("scores")]
+    ended_matches = [m for m in matches if not m.get("is_live") and m.get("scores")]
+
+    has_content = False
 
     if live_matches:
         embed = utils.create_grouped_match_embed(live_matches, "🔴 Live Matches", 0xFF0000)
         await interaction.followup.send(embed=embed)
+        has_content = True
     
     if upcoming_matches:
         embed = utils.create_grouped_match_embed(upcoming_matches, "⏳ Upcoming Matches", 0x3498DB)
         await interaction.followup.send(embed=embed)
+        has_content = True
+        
+    if ended_matches:
+        embed = utils.create_grouped_match_embed(ended_matches, "🏁 Ended Matches", 0x95A5A6)
+        await interaction.followup.send(embed=embed)
+        has_content = True
     
-    if not live_matches and not upcoming_matches:
+    if not has_content:
          await interaction.followup.send("No matches found at all. Go sleep.")
 
 @bot.tree.command(name="live", description="Shows only live matches")
@@ -161,6 +200,21 @@ async def slash_upcoming(interaction: discord.Interaction):
     embed = utils.create_grouped_match_embed(matches, "⏳ Upcoming Matches", 0x3498DB)
     await interaction.followup.send(embed=embed)
 
+@bot.tree.command(name="ended", description="Shows only ended matches")
+async def slash_ended(interaction: discord.Interaction):
+    await interaction.response.defer()
+    matches = api_client.get_ended_matches()
+
+    if matches is None:
+        await interaction.followup.send("🐢 **Server slow hai bhai...** API is waking up. Try again in 30 seconds.")
+        return
+
+    if not matches:
+        await interaction.followup.send("Khatam tata bye bye... koi ended match nahi hai.")
+        return
+
+    embed = utils.create_grouped_match_embed(matches, "🏁 Ended Matches", 0x95A5A6)
+    await interaction.followup.send(embed=embed)
 
 if __name__ == "__main__":
     if config.DISCORD_TOKEN:
