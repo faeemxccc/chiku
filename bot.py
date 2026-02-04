@@ -252,7 +252,7 @@ async def ask(ctx, *, question):
                 part_indicator = f" (Part {i+1}/{len(messages)})" if len(messages) > 1 else ""
                 await ctx.send(f"```{part_indicator}\n{msg}\n```")
         else:
-            await ctx.send(f"```\n{response}\n```")
+            await ctx.send(f"\n{response}\n")
     except Exception as e:
         await ctx.send(f"❌ Error: {str(e)}")
 
