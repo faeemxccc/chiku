@@ -15,7 +15,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 async def on_ready():
     print(f'😴 {bot.user.name} is awake... barely.')
 
-@bot.command(name='ping', help='Wakes up the free server and confirms the bot is alive')
+@bot.command(name='ping', help='the bot is alive')
 async def ping(ctx):
     response = random.choice(config.PING_RESPONSES)
     await ctx.send(response)
@@ -225,6 +225,36 @@ async def meme(ctx):
         return
     embed = utils.create_meme_embed(meme_data)
     await ctx.send(embed=embed)
+@bot.command(name='ask', help='Ask a question to the AI')
+async def ask(ctx, *, question):
+    try:
+        response = api_client.generate_content(question)
+        if response is None:
+            await ctx.send("❌ Failed to generate content. Please try again.")
+            return
+        
+        # Discord has a 4000 character limit per message
+        max_length = 3990  # Leave room for markdown backticks
+        if len(response) > max_length:
+            # Split into multiple messages
+            messages = []
+            current = ""
+            for line in response.split('\n'):
+                if len(current) + len(line) + 1 > max_length:
+                    messages.append(current)
+                    current = line
+                else:
+                    current += line + '\n'
+            if current:
+                messages.append(current)
+            
+            for i, msg in enumerate(messages):
+                part_indicator = f" (Part {i+1}/{len(messages)})" if len(messages) > 1 else ""
+                await ctx.send(f"```{part_indicator}\n{msg}\n```")
+        else:
+            await ctx.send(f"```\n{response}\n```")
+    except Exception as e:
+        await ctx.send(f"❌ Error: {str(e)}")
 
 @bot.tree.command(name="meme", description="Get a random meme")
 async def slash_meme(interaction: discord.Interaction):
@@ -241,3 +271,4 @@ if __name__ == "__main__":
         bot.run(config.DISCORD_TOKEN)
     else:
         print("⚠️ DISCORD_TOKEN not found. Please set it in .env or config.py")
+

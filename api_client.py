@@ -1,6 +1,9 @@
 import requests
 import config
-
+from google import genai
+from google.genai.types import HttpOptions
+import json
+import google.genai.types as types
 def fetch_matches():
     """
     Fetches matches from the configured API endpoint.
@@ -55,3 +58,32 @@ def fetch_meme():
     except requests.exceptions.RequestException as e:
         print(f"⚠️ Meme API Request Failed: {e}")
         return None
+def generate_content(user_prompt):
+    # 1. Initialize the client
+    # Ensure your GOOGLE_API_KEY environment variable is set!
+    client = genai.Client(api_key=config.GOOGLE_API_KEY)
+
+    system_instruction = (
+        "You are Chikku, a friendly and slightly funny Discord bot. "
+        "Keep responses brief and polite, add a light humorous touch when appropriate. "
+        "Format answers in Markdown suitable for Discord."
+    )
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-3-flash-preview", 
+            contents=user_prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                temperature=0.7,
+                max_output_tokens=100,
+            ),
+        )
+        
+        # In the new SDK, .text is the standard way to get the string
+        return response.text
+
+    except Exception as e:
+        # Combined error handling: print to console for you, return message for Discord
+        print(f"⚠️ GenAI request failed: {e}")
+        return f"Oops! Chikku hit a snag: {e}"
