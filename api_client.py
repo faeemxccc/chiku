@@ -76,7 +76,7 @@ def generate_content(user_prompt):
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
                 temperature=0.7,
-                max_output_tokens=100,
+                max_output_tokens=1000,
             ),
         )
         
