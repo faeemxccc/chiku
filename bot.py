@@ -225,36 +225,6 @@ async def meme(ctx):
         return
     embed = utils.create_meme_embed(meme_data)
     await ctx.send(embed=embed)
-@bot.command(name='ask', help='Ask a question to the AI')
-async def ask(ctx, *, question):
-    try:
-        response = api_client.generate_content(question)
-        if response is None:
-            await ctx.send("❌ Failed to generate content. Please try again.")
-            return
-        
-        # Discord has a 4000 character limit per message
-        max_length = 3990  # Leave room for markdown backticks
-        if len(response) > max_length:
-            # Split into multiple messages
-            messages = []
-            current = ""
-            for line in response.split('\n'):
-                if len(current) + len(line) + 1 > max_length:
-                    messages.append(current)
-                    current = line
-                else:
-                    current += line + '\n'
-            if current:
-                messages.append(current)
-            
-            for i, msg in enumerate(messages):
-                part_indicator = f" (Part {i+1}/{len(messages)})" if len(messages) > 1 else ""
-                await ctx.send(f"```{part_indicator}\n{msg}\n```")
-        else:
-            await ctx.send(f"\n{response}\n")
-    except Exception as e:
-        await ctx.send(f"❌ Error: {str(e)}")
 
 @bot.tree.command(name="meme", description="Get a random meme")
 async def slash_meme(interaction: discord.Interaction):

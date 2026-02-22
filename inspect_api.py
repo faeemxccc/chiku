@@ -1,12 +1,1 @@
-import requests
-import json
-
-API_URL = "https://py-score-api.onrender.com/live-matches"
-
-try:
-    response = requests.get(API_URL, timeout=30)
-    response.raise_for_status()
-    data = response.json()
-    print(json.dumps(data, indent=2))
-except Exception as e:
-    print(f"Error: {e}")
+浩潰瑲爠煥敵瑳൳椊灭牯⁴獪湯਍਍偁彉剕⁌‽栢瑴獰⼺瀯⵹捳牯ⵥ灡⹩湯敲摮牥挮浯氯癩ⵥ慭捴敨≳਍਍牴㩹਍††敲灳湯敳㴠爠煥敵瑳⹳敧⡴偁彉剕ⱌ琠浩潥瑵㌽⤰਍††敲灳湯敳爮楡敳晟牯獟慴畴⡳ഩ †搠瑡⁡‽敲灳湯敳樮潳⡮ഩ †瀠楲瑮樨潳⹮畤灭⡳慤慴‬湩敤瑮㈽⤩਍硥散瑰䔠捸灥楴湯愠⁳㩥਍††牰湩⡴≦牅潲㩲笠絥⤢਍
