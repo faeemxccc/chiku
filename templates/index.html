@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memories Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface-color: #1e293b;
+            --text-color: #f8fafc;
+            --accent-color: #3b82f6;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .flash-messages {
+            margin-bottom: 2rem;
+        }
+
+        .flash {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            background-color: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--accent-color);
+            color: #93c5fd;
+        }
+
+        .flash.success {
+            background-color: rgba(16, 185, 129, 0.1);
+            border-color: var(--success-color);
+            color: #6ee7b7;
+        }
+
+        .flash.error {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-color: var(--danger-color);
+            color: #fca5a5;
+        }
+
+        .user-section {
+            background-color: var(--surface-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .user-id {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .memory-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .memory-item {
+            display: flex;
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .memory-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            border-color: #475569;
+        }
+
+        .memory-role {
+            padding: 1rem;
+            width: 100px;
+            font-weight: 600;
+            text-transform: capitalize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .role-user { color: #60a5fa; }
+        .role-model { color: #a78bfa; }
+
+        .memory-content {
+            padding: 1rem;
+            flex-grow: 1;
+        }
+
+        .memory-text {
+            white-space: pre-wrap;
+            color: #e2e8f0;
+        }
+
+        .memory-actions {
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-left: 1px solid var(--border-color);
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .btn-edit {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border: 1px solid var(--accent-color);
+        }
+
+        .btn-edit:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            border: 1px solid var(--danger-color);
+        }
+
+        .btn-delete:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 0.5rem 1rem;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--surface-color);
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        textarea.form-control {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Memories Dashboard</h1>
+        </header>
+
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        {% if context_data %}
+            {% for user_id, memories in context_data.items() %}
+            <div class="user-section">
+                <div class="user-header">
+                    <div class="user-id">User ID: {{ user_id }}</div>
+                    <form action="{{ url_for('clear_user', user_id=user_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all memories for this user?');">
+                        <button type="submit" class="btn btn-danger">Clear All</button>
+                    </form>
+                </div>
+                
+                <div class="memory-list">
+                    {% if memories %}
+                        {% for index in range(memories|length) %}
+                        <div class="memory-item">
+                            <div class="memory-role role-{{ memories[index].role }}">
+                                {{ memories[index].role }}
+                            </div>
+                            <div class="memory-content">
+                                <div class="memory-text">{{ memories[index].text }}</div>
+                            </div>
+                            <div class="memory-actions">
+                                <button class="btn btn-edit" onclick="openEditModal('{{ user_id }}', {{ index }}, '{{ memories[index].role }}', `{{ memories[index].text | replace('`', '\\`') }}`)">Edit</button>
+                                <form action="{{ url_for('delete_memory', user_id=user_id, index=index) }}" method="POST" style="display: inline;">
+                                    <button type="submit" class="btn btn-delete" onclick="return confirm('Delete this memory?');">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="color: #64748b; font-style: italic;">No memories found for this user.</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <h2>No memories found</h2>
+                <p>The chat context is currently empty.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Memory</h3>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editForm" action="" method="POST">
+                <input type="hidden" name="user_id" id="editUserId">
+                <input type="hidden" name="index" id="editIndex">
+                
+                <div class="form-group">
+                    <label for="editRole">Role</label>
+                    <select name="role" id="editRole" class="form-control">
+                        <option value="user">User</option>
+                        <option value="model">Model</option>
+                        <option value="system">System</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editText">Content</label>
+                    <textarea name="text" id="editText" class="form-control" required></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(userId, index, role, text) {
+            document.getElementById('editUserId').value = userId;
+            document.getElementById('editIndex').value = index;
+            document.getElementById('editRole').value = role;
+            document.getElementById('editText').value = text;
+            
+            // Set form action dynamically
+            document.getElementById('editForm').action = `/edit/${userId}/${index}`;
+            
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target == modal) {
+                closeEditModal();
+            }
+        }
+    </script>
+</body>
+</html>

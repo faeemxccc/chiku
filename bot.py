@@ -15,6 +15,46 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 async def on_ready():
     print(f'😴 {bot.user.name} is awake... barely.')
 
+@bot.event
+async def on_message(message):
+    # Ignore messages from the bot itself
+    if message.author == bot.user:
+        return
+
+    # Check if the bot is mentioned
+    if bot.user in message.mentions:
+        # Don't respond to roles/everyone, just direct bot mentions
+        if message.mention_everyone:
+            return
+
+        # Extract the user's name
+        user_name = message.author.display_name
+
+        # Clean the message content by removing the mention itself to send purely the text
+        clean_content = message.content.replace(f'<@{bot.user.id}>', '').strip()
+        
+        # If there's no actual message, provide a default prompt
+        if not clean_content:
+            clean_content = "Hello!"
+
+        # Show typing indicator while waiting for the AI response
+        async with message.channel.typing():
+            # Get AI response (Synchronous call to our direct endpoint)
+            # To avoid blocking the event loop on a network call, we should use asyncio.to_thread
+            ai_reply = await asyncio.to_thread(
+                api_client.get_ai_response, 
+                message.channel.id, 
+                user_name, 
+                clean_content
+            )
+
+        # Send the response
+        await message.reply(ai_reply)
+
+    # VERY IMPORTANT: Without this, slash/prefix commands won't work if on_message is overridden
+    await bot.process_commands(message)
+
+
 @bot.command(name='ping', help='the bot is alive')
 async def ping(ctx):
     response = random.choice(config.PING_RESPONSES)

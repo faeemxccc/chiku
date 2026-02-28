@@ -5,6 +5,8 @@ load_dotenv()
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 API_URL = os.getenv("API_URL", "https://api.example.com/cricket") # Placeholder
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+CONTEXT_FILE = "chat_context.json"
 
 EMOJI_GUIDE = {
     "live": "🔴",
