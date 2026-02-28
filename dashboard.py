@@ -25,6 +25,22 @@ def index():
     context_data = load_context()
     return render_template('index.html', context_data=context_data)
 
+@app.route('/export/<user_id>')
+def export_user(user_id):
+    context_data = load_context()
+    if user_id in context_data:
+        from flask import Response
+        import json
+        
+        data = json.dumps(context_data[user_id], indent=4, ensure_ascii=False)
+        return Response(
+            data,
+            mimetype="application/json",
+            headers={"Content-disposition": f"attachment; filename=user_{user_id}_memories.json"}
+        )
+    flash('User not found for export.', 'error')
+    return redirect(url_for('index'))
+
 @app.route('/edit/<user_id>/<int:index>', methods=['POST'])
 def edit_memory(user_id, index):
     context_data = load_context()

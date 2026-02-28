@@ -26,27 +26,5 @@
             "text": "Sleep isn't really something I do, Mando! I'm an AI, so I'm always on and ready to chat.",
             "timestamp": 1772273101.8626952
         }
-    ],
-    "12345": [
-        {
-            "role": "user",
-            "text": "[User: Faee] Hi, my name is Faee!",
-            "timestamp": 1772273590.9945362
-        },
-        {
-            "role": "model",
-            "text": "Hey Faee! Nice to meet you! How can I help you today?",
-            "timestamp": 1772273590.9945362
-        },
-        {
-            "role": "user",
-            "text": "[User: Faee] What is my name?",
-            "timestamp": 1772273592.6481116
-        },
-        {
-            "role": "model",
-            "text": "Your name is Faee!",
-            "timestamp": 1772273592.6481116
-        }
     ]
 }

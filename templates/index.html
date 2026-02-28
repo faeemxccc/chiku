@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,6 +42,25 @@
             margin-bottom: 2rem;
             padding-bottom: 1rem;
             border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .search-bar {
+            flex-grow: 1;
+            max-width: 400px;
+            padding: 0.75rem 1rem;
+            border-radius: 2rem;
+            border: 1px solid var(--border-color);
+            background-color: var(--surface-color);
+            color: white;
+            font-size: 1rem;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
         }
 
         h1 {
@@ -132,8 +152,13 @@
             border-right: 1px solid var(--border-color);
         }
 
-        .role-user { color: #60a5fa; }
-        .role-model { color: #a78bfa; }
+        .role-user {
+            color: #60a5fa;
+        }
+
+        .role-model {
+            color: #a78bfa;
+        }
 
         .memory-content {
             padding: 1rem;
@@ -173,6 +198,19 @@
 
         .btn-edit:hover {
             background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-export {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid #10b981;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-export:hover {
+            background-color: #10b981;
             color: white;
         }
 
@@ -292,7 +330,7 @@
         .btn-primary:hover {
             background-color: #2563eb;
         }
-        
+
         .empty-state {
             text-align: center;
             padding: 3rem;
@@ -300,61 +338,75 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
             <h1>Memories Dashboard</h1>
+            <input type="text" id="searchInput" class="search-bar" placeholder="Search memories..."
+                onkeyup="filterMemories()">
         </header>
 
         <div class="flash-messages">
             {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="flash {{ category }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
             {% endwith %}
         </div>
 
         {% if context_data %}
-            {% for user_id, memories in context_data.items() %}
-            <div class="user-section">
-                <div class="user-header">
-                    <div class="user-id">User ID: {{ user_id }}</div>
-                    <form action="{{ url_for('clear_user', user_id=user_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all memories for this user?');">
+        {% for user_id, memories in context_data.items() %}
+        <div class="user-section">
+            <div class="user-header">
+                <div class="user-id">User ID: {{ user_id }}
+                    <span style="font-size: 0.9rem; font-weight: normal; color: #94a3b8; margin-left: 10px;">({{
+                        memories|length }} messages)</span>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem;">
+                    <a href="{{ url_for('export_user', user_id=user_id) }}" class="btn btn-export">Export JSON</a>
+                    <form action="{{ url_for('clear_user', user_id=user_id) }}" method="POST"
+                        onsubmit="return confirm('Are you sure you want to delete all memories for this user?');">
                         <button type="submit" class="btn btn-danger">Clear All</button>
                     </form>
                 </div>
-                
-                <div class="memory-list">
-                    {% if memories %}
-                        {% for index in range(memories|length) %}
-                        <div class="memory-item">
-                            <div class="memory-role role-{{ memories[index].role }}">
-                                {{ memories[index].role }}
-                            </div>
-                            <div class="memory-content">
-                                <div class="memory-text">{{ memories[index].text }}</div>
-                            </div>
-                            <div class="memory-actions">
-                                <button class="btn btn-edit" onclick="openEditModal('{{ user_id }}', {{ index }}, '{{ memories[index].role }}', `{{ memories[index].text | replace('`', '\\`') }}`)">Edit</button>
-                                <form action="{{ url_for('delete_memory', user_id=user_id, index=index) }}" method="POST" style="display: inline;">
-                                    <button type="submit" class="btn btn-delete" onclick="return confirm('Delete this memory?');">Delete</button>
-                                </form>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <div style="color: #64748b; font-style: italic;">No memories found for this user.</div>
-                    {% endif %}
+            </div>
+
+            <div class="memory-list">
+                {% if memories %}
+                {% for index in range(memories|length) %}
+                <div class="memory-item">
+                    <div class="memory-role role-{{ memories[index].role }}">
+                        {{ memories[index].role }}
+                    </div>
+                    <div class="memory-content">
+                        <div class="memory-text">{{ memories[index].text }}</div>
+                    </div>
+                    <div class="memory-actions">
+                        <button class="btn btn-edit"
+                            onclick="openEditModal('{{ user_id }}', {{ index }}, '{{ memories[index].role }}', `{{ memories[index].text | replace('`', '\\`') }}`)">Edit</button>
+                        <form action="{{ url_for('delete_memory', user_id=user_id, index=index) }}" method="POST"
+                            style="display: inline;">
+                            <button type="submit" class="btn btn-delete"
+                                onclick="return confirm('Delete this memory?');">Delete</button>
+                        </form>
+                    </div>
                 </div>
+                {% endfor %}
+                {% else %}
+                <div style="color: #64748b; font-style: italic;">No memories found for this user.</div>
+                {% endif %}
             </div>
-            {% endfor %}
+        </div>
+        {% endfor %}
         {% else %}
-            <div class="empty-state">
-                <h2>No memories found</h2>
-                <p>The chat context is currently empty.</p>
-            </div>
+        <div class="empty-state">
+            <h2>No memories found</h2>
+            <p>The chat context is currently empty.</p>
+        </div>
         {% endif %}
     </div>
 
@@ -368,7 +420,7 @@
             <form id="editForm" action="" method="POST">
                 <input type="hidden" name="user_id" id="editUserId">
                 <input type="hidden" name="index" id="editIndex">
-                
+
                 <div class="form-group">
                     <label for="editRole">Role</label>
                     <select name="role" id="editRole" class="form-control">
@@ -377,12 +429,12 @@
                         <option value="system">System</option>
                     </select>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="editText">Content</label>
                     <textarea name="text" id="editText" class="form-control" required></textarea>
                 </div>
-                
+
                 <button type="submit" class="btn btn-primary btn-primary">Save Changes</button>
             </form>
         </div>
@@ -394,10 +446,10 @@
             document.getElementById('editIndex').value = index;
             document.getElementById('editRole').value = role;
             document.getElementById('editText').value = text;
-            
+
             // Set form action dynamically
             document.getElementById('editForm').action = `/edit/${userId}/${index}`;
-            
+
             document.getElementById('editModal').classList.add('active');
         }
 
@@ -406,12 +458,40 @@
         }
 
         // Close modal when clicking outside
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             const modal = document.getElementById('editModal');
             if (event.target == modal) {
                 closeEditModal();
             }
         }
+
+        function filterMemories() {
+            let input = document.getElementById('searchInput');
+            let filter = input.value.toLowerCase();
+            let items = document.getElementsByClassName('memory-item');
+
+            for (let i = 0; i < items.length; i++) {
+                let content = items[i].getElementsByClassName('memory-content')[0];
+                let text = content.textContent || content.innerText;
+                if (text.toLowerCase().indexOf(filter) > -1) {
+                    items[i].style.display = "flex";
+                } else {
+                    items[i].style.display = "none";
+                }
+            }
+
+            // Hide empty user sections
+            let userSections = document.getElementsByClassName('user-section');
+            for (let i = 0; i < userSections.length; i++) {
+                let visibleItems = userSections[i].querySelectorAll('.memory-item[style="display: flex;"], .memory-item:not([style*="display: none"])');
+                if (visibleItems.length === 0) {
+                    userSections[i].style.display = "none";
+                } else {
+                    userSections[i].style.display = "block";
+                }
+            }
+        }
     </script>
 </body>
+
 </html>
